@@ -66,4 +66,13 @@ def create_torrent(
         torrent.add_url_seed(us)
 
     libtorrent.set_piece_hashes(torrent, str(parent))
-    return libtorrent.bencode(torrent.generate())
+    torrent_data = torrent.generate()
+
+    # https://www.libtorrent.org/reference-Create_Torrents.html#set-creation-date
+    # Unfortunately, libtorrent didn't expose create_torrent::set_creation_date
+    # in its python binding, so we have to omit the date (set it to unix epoch)
+    # by the hacky way
+    if not date:
+        torrent_data[b'creation date'] = 0
+
+    return libtorrent.bencode(torrent_data)
