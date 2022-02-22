@@ -1,5 +1,6 @@
 import libtorrent
 import pathlib
+import enum
 
 
 class InvalidFileException(Exception):
@@ -10,12 +11,10 @@ class InvalidFileException(Exception):
         return f"Invalid file path: {self.path}"
 
 
-class InvalidArgumentException(Exception):
-    def __init__(self, reason: str):
-        self.reason = reason
-
-    def __repr__(self):
-        return f"Invalid argument: {self.reason}"
+class TorrentFormat(enum.Enum):
+    Hybrid = 0
+    V1 = 1
+    V2 = 2
 
 
 def create_torrent(
@@ -25,18 +24,13 @@ def create_torrent(
     comment: str = None,
     date: bool = True,
     priv: bool = False,
-    v2_only: bool = False,
-    v1_only: bool = False,
+    torrent_format: TorrentFormat = TorrentFormat.Hybrid,
     url_seed: list[str] = [],
 ) -> bytes:
-    if v1_only and v2_only:
-        raise InvalidArgumentException(
-            "The flag 'v1_only' and 'v2_only' could not be set simultaneously."
-        )
-
     file_storage = libtorrent.file_storage()
     path = pathlib.Path(filepath)
     parent = path.parent
+    flags = 0
 
     if not path.exists():
         raise InvalidFileException(filepath)
@@ -47,13 +41,13 @@ def create_torrent(
     if path.is_dir():
         pass  # TBD
 
-    flags = 0
-
-    if v2_only:
-        flags |= libtorrent.create_torrent.v2_only
-
-    if v1_only:
-        flags |= libtorrent.create_torrent.v1_only
+    match torrent_format:
+        case TorrentFormat.Hybrid:
+            pass
+        case TorrentFormat.V1:
+            flags |= libtorrent.create_torrent.v1_only
+        case TorrentFormat.V2:
+            flags |= libtorrent.create_torrent.v2_only
 
     torrent = libtorrent.create_torrent(
         file_storage,
