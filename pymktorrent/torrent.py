@@ -10,6 +10,14 @@ class InvalidFileException(Exception):
         return f"Invalid file path: {self.path}"
 
 
+class InvalidArgumentException(Exception):
+    def __init__(self, reason: str):
+        self.reason = reason
+
+    def __repr__(self):
+        return f"Invalid argument: {self.reason}"
+
+
 def create_torrent(
     filepath: str,
     trackers: list[str] = [],
@@ -17,8 +25,15 @@ def create_torrent(
     comment: str = None,
     date: bool = True,
     priv: bool = False,
+    v2_only: bool = False,
+    v1_only: bool = False,
     url_seed: list[str] = [],
 ) -> bytes:
+    if v1_only and v2_only:
+        raise InvalidArgumentException(
+            "The flag 'v1_only' and 'v2_only' could not be set simultaneously."
+        )
+
     file_storage = libtorrent.file_storage()
     path = pathlib.Path(filepath)
     parent = path.parent
@@ -32,9 +47,20 @@ def create_torrent(
     if path.is_dir():
         pass  # TBD
 
+    flags = 0
+
+    if v2_only:
+        flags |= libtorrent.create_torrent_flags_t.v2_only
+
+    if v1_only:
+        # https://www.libtorrent.org/reference-Create_Torrents.html
+        # Not defined in python binding?
+        flags |= 2 ** 6
+
     torrent = libtorrent.create_torrent(
         file_storage,
-        piece_size=2**size_exp
+        piece_size=2**size_exp,
+        flags=flags
     )
 
     torrent.set_creator(f"{libtorrent.__name__}/{libtorrent.__version__}")
