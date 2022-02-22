@@ -3,6 +3,10 @@ import pathlib
 import enum
 
 
+__name__ = 'pymktorrent'
+__version__ = '1.0'
+
+
 class InvalidFileException(Exception):
     def __init__(self, path):
         self.path = path
@@ -55,7 +59,12 @@ def create_torrent(
         flags=flags
     )
 
-    torrent.set_creator(f"{libtorrent.__name__}/{libtorrent.__version__}")
+    torrent.set_creator("{}/{} {}/{}".format(
+        __name__,
+        __version__,
+        libtorrent.__name__,
+        libtorrent.__version__
+    ))
     torrent.set_comment(comment)
     torrent.set_priv(priv)
 
