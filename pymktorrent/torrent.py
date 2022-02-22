@@ -50,12 +50,10 @@ def create_torrent(
     flags = 0
 
     if v2_only:
-        flags |= libtorrent.create_torrent_flags_t.v2_only
+        flags |= libtorrent.create_torrent.v2_only
 
     if v1_only:
-        # https://www.libtorrent.org/reference-Create_Torrents.html
-        # Not defined in python binding?
-        flags |= 2 ** 6
+        flags |= libtorrent.create_torrent.v1_only
 
     torrent = libtorrent.create_torrent(
         file_storage,
