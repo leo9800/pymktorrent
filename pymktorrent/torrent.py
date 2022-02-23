@@ -59,7 +59,7 @@ def create_torrent(
         for p in iterdir(path):
             file_storage.add_file(
                 str(p.relative_to(parent)),
-                path.stat().st_size
+                p.stat().st_size
             )
 
     match torrent_format:
