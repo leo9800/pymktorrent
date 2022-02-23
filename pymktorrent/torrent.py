@@ -21,6 +21,16 @@ class TorrentFormat(enum.Enum):
     V2 = 2
 
 
+# https://stackoverflow.com/questions/6639394/what-is-the-python-way-to-walk-a-directory-tree
+def iterdir(path: pathlib.Path):
+    for p in path.iterdir():
+        if p.is_dir():
+            yield from iterdir(p)
+            continue
+
+        yield p.resolve()
+
+
 def create_torrent(
     filepath: str,
     trackers: list[str] = [],
@@ -40,10 +50,17 @@ def create_torrent(
         raise InvalidFileException(filepath)
 
     if path.is_file():
-        file_storage.add_file(str(path.name), path.stat().st_size)
+        file_storage.add_file(
+            str(path.name),
+            path.stat().st_size
+        )
 
     if path.is_dir():
-        pass  # TBD
+        for p in iterdir(path):
+            file_storage.add_file(
+                str(p.relative_to(parent)),
+                path.stat().st_size
+            )
 
     match torrent_format:
         case TorrentFormat.Hybrid:
