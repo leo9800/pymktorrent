@@ -39,7 +39,7 @@ def create_torrent(
     date: bool = True,
     priv: bool = False,
     torrent_format: TorrentFormat = TorrentFormat.Hybrid,
-    url_seed: list[str] = [],
+    url_seeds: list[str] = [],
 ) -> bytes:
     file_storage = libtorrent.file_storage()
     path = pathlib.Path(filepath)
@@ -88,7 +88,7 @@ def create_torrent(
     for t in trackers:
         torrent.add_tracker(t)
 
-    for us in url_seed:
+    for us in url_seeds:
         torrent.add_url_seed(us)
 
     libtorrent.set_piece_hashes(torrent, str(parent))
